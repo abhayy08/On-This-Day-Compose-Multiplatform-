@@ -3,6 +3,7 @@ package com.abhay.onthisday.presentation.home_screen
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,6 +40,10 @@ import com.abhay.onthisday.domain.model.Event
 import com.abhay.onthisday.presentation.components.LoadingContent
 import com.abhay.onthisday.presentation.ui.*
 import com.abhay.onthisday.presentation.util.formatIsoTimeToDisplay
+import onthisday.composeapp.generated.resources.Res
+import onthisday.composeapp.generated.resources.grainy_old_background
+import onthisday.composeapp.generated.resources.vintage_grunge
+import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -52,71 +57,94 @@ fun SharedTransitionScope.HomeScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+        ,
         topBar = {
-            LargeTopAppBar(
-                modifier = Modifier.padding(bottom = 8.dp),
-                title = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "✦ ON THIS DAY ✦",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Serif,
-                            color = Color(0xFF2C1810),
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = "Discover the events that shaped our world",
-                            fontSize = 14.sp,
-                            fontFamily = FontFamily.Serif,
-                            color = Color(0xFF6B4E3D),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = Color(0xFFF7F3E9),
-                    scrolledContainerColor = Color(0xFFF7F3E9),
-                    titleContentColor = Color(0xFF2C1810)
-                ),
-                scrollBehavior = scrollBehavior
-            )
+            OnThisDayTopAppBar(scrollBehavior)
         },
         containerColor = Color(0xFFF7F3E9)
     ) { paddingValues ->
-        if(state.value.isLoading) {
-            LoadingContent(paddingValues)
-        }else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = PaddingValues(vertical = 16.dp)
-            ) {
-                items(state.value.events, key = { it.title + it.timeStamp }) { event ->
-                    EventCard(
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        event = event, onClick = { onEventClicked(event.identifierTitle, event.originalImage, event.title) }
-                    )
-                }
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
 
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
+            Image(
+                painter = painterResource(resource = Res.drawable.vintage_grunge),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            if(state.value.isLoading) {
+                LoadingContent(paddingValues)
+            }else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    items(state.value.events, key = { it.title + it.timeStamp }) { event ->
+                        EventCard(
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            event = event, onClick = { onEventClicked(event.identifierTitle, event.originalImage, event.title) }
+                        )
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OnThisDayTopAppBar(
+    scrollBehavior:  TopAppBarScrollBehavior
+) {
+    LargeTopAppBar(
+        modifier = Modifier.padding(bottom = 8.dp),
+        title = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "✦ ON THIS DAY ✦",
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontFamily = FontFamily.Serif,
+                    color = Color(0xFF2C1810),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "Discover the events that shaped our world",
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6B4E3D),
+                    textAlign = TextAlign.Center
+                )
+            }
+        },
+        colors = TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent,
+            titleContentColor = Color(0xFF2C1810)
+        ),
+        scrollBehavior = scrollBehavior
+    )
+}
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -131,188 +159,201 @@ fun SharedTransitionScope.EventCard(
             .clickable { onClick() }
             .shadow(8.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF7)),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 2.dp,
-                    color = Color(0xFFD4AF37),
-                    shape = RoundedCornerShape(16.dp)
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            ) {
-                if (event.thumbnail.isNotBlank() || event.originalImage.isNotBlank()) {
-                    Box(
-                        modifier = Modifier
-                            .sharedElement(
-                                sharedContentState = rememberSharedContentState(
-                                    key = "eventImage${event.identifierTitle}",
-                                ),
-                                animatedVisibilityScope = animatedVisibilityScope
-                            ),
-                    ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalPlatformContext.current)
-                                .data(event.originalImage)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = event.title,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.TopCenter
-                        )
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                            .background(
-                                Brush.radialGradient(
-                                    colors = listOf(
-                                        Color(0xFFF4E4BC),
-                                        Color(0xFFE6D3A3),
-                                        Color(0xFFD4AF37).copy(alpha = 0.3f)
-                                    )
-                                )
-                            )
-                    )
-                }
+       Box(
+           modifier = Modifier
+               .fillMaxWidth()
+               .height(IntrinsicSize.Min)
+       ) {
 
-                // Vignette overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color(0xFF2C1810).copy(alpha = 0.3f)
-                                ),
-                                radius = 800f
-                            )
-                        )
-                )
+           Image(
+               painter = painterResource(resource = Res.drawable.grainy_old_background),
+               contentScale = ContentScale.Crop,
+               contentDescription = null,
+               modifier = Modifier.matchParentSize()
+           )
 
-                // Decorative corner elements
-                Text(
-                    text = "❦",
-                    fontSize = 24.sp,
-                    color = Color(0xFFD4AF37),
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(12.dp)
-                )
+           Column(
+               modifier = Modifier
+                   .fillMaxWidth()
+                   .border(
+                       width = 2.dp,
+                       color = Color(0xFFD4AF37),
+                       shape = RoundedCornerShape(16.dp)
+                   )
+           ) {
+               Box(
+                   modifier = Modifier
+                       .fillMaxWidth()
+                       .height(200.dp)
+               ) {
+                   if (event.thumbnail.isNotBlank() || event.originalImage.isNotBlank()) {
+                       Box(
+                           modifier = Modifier
+                               .sharedElement(
+                                   sharedContentState = rememberSharedContentState(
+                                       key = "eventImage${event.identifierTitle}",
+                                   ),
+                                   animatedVisibilityScope = animatedVisibilityScope
+                               ),
+                       ) {
+                           AsyncImage(
+                               model = ImageRequest.Builder(LocalPlatformContext.current)
+                                   .data(event.originalImage)
+                                   .crossfade(true)
+                                   .build(),
+                               contentDescription = event.title,
+                               modifier = Modifier
+                                   .fillMaxSize()
+                                   .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                               contentScale = ContentScale.Crop,
+                               alignment = Alignment.TopCenter
+                           )
+                       }
+                   } else {
+                       Box(
+                           modifier = Modifier
+                               .fillMaxSize()
+                               .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                               .background(
+                                   Brush.radialGradient(
+                                       colors = listOf(
+                                           Color(0xFFF4E4BC),
+                                           Color(0xFFE6D3A3),
+                                           Color(0xFFD4AF37).copy(alpha = 0.3f)
+                                       )
+                                   )
+                               )
+                       )
+                   }
 
-                Text(
-                    text = "❦",
-                    fontSize = 24.sp,
-                    color = Color(0xFFD4AF37),
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(12.dp)
-                )
-            }
+                   // Vignette overlay
+                   Box(
+                       modifier = Modifier
+                           .fillMaxSize()
+                           .background(
+                               Brush.radialGradient(
+                                   colors = listOf(
+                                       Color.Transparent,
+                                       Color(0xFF2C1810).copy(alpha = 0.3f)
+                                   ),
+                                   radius = 800f
+                               )
+                           )
+                   )
 
-            // Content section
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFFFFDF7))
-                    .padding(20.dp)
-            ) {
-                // Divider
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color(0xFFD4AF37))
-                )
+                   // Decorative corner elements
+                   Text(
+                       text = "❦",
+                       fontSize = 24.sp,
+                       color = Color(0xFFD4AF37),
+                       modifier = Modifier
+                           .align(Alignment.TopStart)
+                           .padding(12.dp)
+                   )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                   Text(
+                       text = "❦",
+                       fontSize = 24.sp,
+                       color = Color(0xFFD4AF37),
+                       modifier = Modifier
+                           .align(Alignment.TopEnd)
+                           .padding(12.dp)
+                   )
+               }
 
-                // Date
-                Text(
-                    text = formatIsoTimeToDisplay(event.timeStamp),
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF8B4513),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
+               // Content section
+               Column(
+                   modifier = Modifier
+                       .fillMaxWidth()
+                       .padding(20.dp)
+               ) {
+                   // Divider
+                   Box(
+                       modifier = Modifier
+                           .fillMaxWidth()
+                           .height(1.dp)
+                           .background(Color(0xFFD4AF37))
+                   )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                   Spacer(modifier = Modifier.height(16.dp))
 
-                // Title
-                Text(
-                    text = event.title,
-                    fontSize = 20.sp,
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2C1810),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 24.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .sharedElement(
-                            rememberSharedContentState(key = "eventTitle${event.identifierTitle}"),
-                            animatedVisibilityScope
-                        )
+                   // Date
+                   Text(
+                       text = formatIsoTimeToDisplay(event.timeStamp),
+                       fontSize = 12.sp,
+                       fontFamily = FontFamily.Serif,
+                       fontWeight = FontWeight.Bold,
+                       color = Color(0xFF8B4513),
+                       textAlign = TextAlign.Center,
+                       modifier = Modifier.fillMaxWidth()
+                   )
 
-                )
+                   Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(12.dp))
+                   // Title
+                   Text(
+                       text = event.title,
+                       fontSize = 20.sp,
+                       fontFamily = FontFamily.Serif,
+                       fontWeight = FontWeight.Bold,
+                       color = Color(0xFF2C1810),
+                       maxLines = 2,
+                       overflow = TextOverflow.Ellipsis,
+                       textAlign = TextAlign.Center,
+                       lineHeight = 24.sp,
+                       modifier = Modifier
+                           .fillMaxWidth()
+                           .sharedElement(
+                               rememberSharedContentState(key = "eventTitle${event.identifierTitle}"),
+                               animatedVisibilityScope
+                           )
 
-                // Description
-                Text(
-                    text = event.extract.takeIf { it.isNotBlank() } ?: event.description,
-                    fontSize = 14.sp,
-                    fontFamily = FontFamily.Serif,
-                    color = Color(0xFF5D4037),
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp,
-                    textAlign = TextAlign.Justify,
-                )
+                   )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                   Spacer(modifier = Modifier.height(12.dp))
 
-                // Divider
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color(0xFFD4AF37))
-                )
+                   // Description
+                   Text(
+                       text = event.extract.takeIf { it.isNotBlank() } ?: event.description,
+                       fontSize = 14.sp,
+                       fontFamily = FontFamily.Serif,
+                       color = Color(0xFF5D4037),
+                       maxLines = 3,
+                       overflow = TextOverflow.Ellipsis,
+                       lineHeight = 20.sp,
+                       textAlign = TextAlign.Justify,
+                   )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                   Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "❦ Continue Reading ❦",
-                        fontSize = 14.sp,
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF8B4513),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
+                   // Divider
+                   Box(
+                       modifier = Modifier
+                           .fillMaxWidth()
+                           .height(1.dp)
+                           .background(Color(0xFFD4AF37))
+                   )
+
+                   Spacer(modifier = Modifier.height(12.dp))
+
+                   Row(
+                       modifier = Modifier.fillMaxWidth(),
+                       horizontalArrangement = Arrangement.Center
+                   ) {
+                       Text(
+                           text = "❦ Continue Reading ❦",
+                           fontSize = 14.sp,
+                           fontFamily = FontFamily.Serif,
+                           fontWeight = FontWeight.Medium,
+                           color = Color(0xFF8B4513),
+                           textAlign = TextAlign.Center
+                       )
+                   }
+               }
+           }
+       }
     }
 }

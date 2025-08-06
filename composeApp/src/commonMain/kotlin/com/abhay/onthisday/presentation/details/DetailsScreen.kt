@@ -3,6 +3,7 @@ package com.abhay.onthisday.presentation.details
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -34,6 +35,10 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.abhay.onthisday.presentation.components.LoadingContent
 import com.abhay.onthisday.presentation.ui.Cream
+import onthisday.composeapp.generated.resources.Res
+import onthisday.composeapp.generated.resources.grainy_old_background
+import onthisday.composeapp.generated.resources.vintage_grunge
+import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -55,83 +60,108 @@ fun SharedTransitionScope.DetailsScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "✦ HISTORICAL CHRONICLE ✦",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Serif,
-                            color = Color(0xFF2C1810),
-                            textAlign = TextAlign.Center
-                        )
-
-                        if (state.value.title.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = state.value.title,
-                                fontSize = 16.sp,
-                                fontFamily = FontFamily.Serif,
-                                fontWeight = FontWeight.Medium,
-                                color = Color(0xFF6B4E3D),
-                                textAlign = TextAlign.Center,
-                                maxLines = 2
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = onBackPressed,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .background(
-                                Color(0xFFD4AF37).copy(alpha = 0.2f),
-                                RoundedCornerShape(12.dp)
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color(0xFF2C1810)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = Color(0xFFF7F3E9),
-                    scrolledContainerColor = Color(0xFFF7F3E9),
-                    titleContentColor = Color(0xFF2C1810)
-                ),
-                scrollBehavior = scrollBehavior
+            DetailsTopAppbar(
+                title = state.value.title,
+                onBackPressed = onBackPressed,
+                scrollBehavior
             )
         },
         containerColor = Color(0xFFF7F3E9)
     ) { paddingValues ->
-        when {
-            state.value.error != null -> {
-                ErrorContent(paddingValues, state.value.error!!.asString())
-            }
 
-            else -> {
-                DetailContent(
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    title = title,
-                    detail = state.value.detail,
-                    imageLink = imageLink,
-                    modifier = Modifier
-                        .padding(paddingValues),
-                    isLoading = state.value.isLoading,
-                    paddingValues = paddingValues,
-                    identifierTitle = identifierTitle
-                )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(resource = Res.drawable.vintage_grunge),
+                contentScale = ContentScale.Crop,
+                contentDescription = null
+            )
+
+            when {
+                state.value.error != null -> {
+                    ErrorContent(paddingValues, state.value.error!!.asString())
+                }
+
+                else -> {
+                    DetailContent(
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        title = title,
+                        detail = state.value.detail,
+                        imageLink = imageLink,
+                        modifier = Modifier
+                            .padding(paddingValues),
+                        isLoading = state.value.isLoading,
+                        paddingValues = paddingValues,
+                        identifierTitle = identifierTitle
+                    )
+                }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DetailsTopAppbar(
+    title: String,
+    onBackPressed: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior
+) {
+    LargeTopAppBar(
+        title = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "✦ HISTORICAL CHRONICLE ✦",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Serif,
+                    color = Color(0xFF2C1810),
+                    textAlign = TextAlign.Center
+                )
+
+                if (title.isNotBlank()) {
+                    Text(
+                        text = title,
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2C1810),
+                        textAlign = TextAlign.Center,
+                        maxLines = 2
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = onBackPressed,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .background(
+                        Cream,
+                        RoundedCornerShape(12.dp)
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color(0xFF2C1810)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent,
+            titleContentColor = Color(0xFF2C1810)
+        ),
+        scrollBehavior = scrollBehavior
+    )
 }
 
 @Composable
@@ -285,7 +315,7 @@ fun SharedTransitionScope.DetailContent(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = "❦", fontSize = 28.sp, color = Color(0xFFD4AF37))
-
+                    Text(text = "✦", fontSize = 24.sp, color = Color(0xFFD4AF37))
                     Text(text = "❦", fontSize = 28.sp, color = Color(0xFFD4AF37))
                 }
 
@@ -336,16 +366,16 @@ fun SharedTransitionScope.DetailContent(
             // CONTENT SECTION
             Column(
                 modifier = Modifier
-                    .background(Color(0xFFFFFDF7))
+                    .background(Cream)
                     .padding(18.dp)
             ) {
 
-                EventDetail(
-                    detail = detail,
-                )
-
                 if (isLoading) {
                     LoadingContent(paddingValues = paddingValues)
+                } else {
+                    EventDetail(
+                        detail = detail,
+                    )
                 }
 
 
@@ -365,6 +395,7 @@ fun SharedTransitionScope.DetailContent(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+
     }
 }
 

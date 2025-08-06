@@ -5,16 +5,16 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,10 +33,10 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.abhay.onthisday.presentation.components.ErrorContent
 import com.abhay.onthisday.presentation.components.LoadingContent
 import com.abhay.onthisday.presentation.ui.Cream
 import onthisday.composeapp.generated.resources.Res
-import onthisday.composeapp.generated.resources.grainy_old_background
 import onthisday.composeapp.generated.resources.vintage_grunge
 import org.jetbrains.compose.resources.painterResource
 
@@ -93,7 +93,6 @@ fun SharedTransitionScope.DetailsScreen(
                         modifier = Modifier
                             .padding(paddingValues),
                         isLoading = state.value.isLoading,
-                        paddingValues = paddingValues,
                         identifierTitle = identifierTitle
                     )
                 }
@@ -164,52 +163,7 @@ fun DetailsTopAppbar(
     )
 }
 
-@Composable
-private fun ErrorContent(paddingValues: PaddingValues, errorMessage: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(20.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF7))
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(2.dp, Color(0xFFCD5C5C), RoundedCornerShape(16.dp))
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "⚠️",
-                    fontSize = 48.sp
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Chronicle Lost",
-                    fontSize = 20.sp,
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2C1810),
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = errorMessage,
-                    fontSize = 14.sp,
-                    fontFamily = FontFamily.Serif,
-                    color = Color(0xFF6B4E3D),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
+
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -220,9 +174,9 @@ fun SharedTransitionScope.DetailContent(
     imageLink: String,
     detail: String,
     isLoading: Boolean,
-    paddingValues: PaddingValues,
     identifierTitle: String
 ) {
+    val detailItems = remember(detail) { parseDetailText(detail) }
     Card(
         modifier = modifier
             .fillMaxSize()
@@ -233,160 +187,42 @@ fun SharedTransitionScope.DetailContent(
             containerColor = Cream
         )
     ) {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Cream),
+        ) {
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                // Image and gradient if image not available
-                if (imageLink.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .sharedElement(
-                                rememberSharedContentState(key = "eventImage${identifierTitle}"),
-                                animatedVisibilityScope = animatedVisibilityScope
-                            )
-                    ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalPlatformContext.current)
-                                .data(imageLink)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = title,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.Center)
-                                .defaultMinSize(minHeight = 250.dp)
-                                .wrapContentHeight()
-                                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                                .zIndex(0f),
-                            contentScale = ContentScale.Fit,
-                        )
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(320.dp)
-                            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                            .background(
-                                Brush.radialGradient(
-                                    colors = listOf(
-                                        Color(0xFFF4E4BC),
-                                        Color(0xFFE6D3A3),
-                                        Color(0xFFD4AF37).copy(alpha = 0.5f)
-                                    ),
-                                    radius = 600f
-                                )
-                            )
-                            .zIndex(0f)
-                    )
-                }
-
-                // Vertical Black Gradient over the whole image and title box container
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 0.6f),
-                                    Color.Black.copy(alpha = 0.2f),
-                                    Color.Transparent,
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.5f),
-                                    Color.Black.copy(alpha = 0.7f)
-                                ),
-                                startY = 0f,
-                                endY = Float.POSITIVE_INFINITY
-                            )
-                        )
-                        .zIndex(1f)
+            item {
+                ImageAndTitle(
+                    imageLink = imageLink,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    identifierTitle = identifierTitle,
+                    title = title
                 )
-
-                // Decorative icons
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
-                        .zIndex(10f),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = "❦", fontSize = 28.sp, color = Color(0xFFD4AF37))
-                    Text(text = "✦", fontSize = 24.sp, color = Color(0xFFD4AF37))
-                    Text(text = "❦", fontSize = 28.sp, color = Color(0xFFD4AF37))
-                }
-
-                // Title
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(24.dp)
-                        .zIndex(10f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = title,
-                        fontSize = 26.sp,
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 30.sp,
-                        modifier = Modifier.sharedElement(
-                            rememberSharedContentState(key = "eventTitle${identifierTitle}"),
-                            animatedVisibilityScope
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .width(120.dp)
-                            .height(4.dp)
-                            .background(
-                                Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        Color(0xFFD4AF37),
-                                        Color(0xFFFFD700),
-                                        Color(0xFFD4AF37),
-                                        Color.Transparent
-                                    )
-                                )
-                            )
-                    )
-                }
             }
 
 
             // CONTENT SECTION
-            Column(
-                modifier = Modifier
-                    .background(Cream)
-                    .padding(18.dp)
-            ) {
-
-                if (isLoading) {
-                    LoadingContent(paddingValues = paddingValues)
-                } else {
-                    EventDetail(
-                        detail = detail,
-                    )
+            if (isLoading) {
+                item {
+                    Spacer(modifier = Modifier.height(30.dp))
+                    LoadingContent()
                 }
+            } else {
+                EventDetail(
+                    detailItems = detailItems,
+                )
+            }
 
-
-                // Add decorative footer
+            item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "✦ ❦ ✦",
+                        text = "༺   ❖   ༻",
                         fontSize = 20.sp,
                         color = Color(0xFFD4AF37).copy(alpha = 0.7f),
                         letterSpacing = 12.sp
@@ -395,79 +231,226 @@ fun SharedTransitionScope.DetailContent(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-
     }
 }
 
+
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun EventDetail(
-    detail: String,
+fun SharedTransitionScope.ImageAndTitle(
+    imageLink: String,
+    identifierTitle: String,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    title: String
 ) {
-    val parsedLines = detail.lines()
-    parsedLines.forEach { line ->
-        val trimmedLine = line.trim()
-        val isHeading = trimmedLine.startsWith("=")
-
-        if (isHeading) {
-            val headingLevel = trimmedLine.takeWhile { it == '=' }.length
-            val headingText = trimmedLine.trim('=').trim()
-
-            val fontSize = when (headingLevel) {
-                2 -> 22.sp
-                3 -> 20.sp
-                else -> 16.sp
-            }
-
-            val fontWeight = when (headingLevel) {
-                2 -> FontWeight.Bold
-                3 -> FontWeight.Medium
-                else -> FontWeight.Normal
-            }
-
-            // Decorative element before major headings
-            if (headingLevel == 2) {
-                Row(
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        // Image and gradient if image not available
+        if (imageLink.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .sharedElement(
+                        rememberSharedContentState(key = "eventImage${identifierTitle}"),
+                        animatedVisibilityScope = animatedVisibilityScope
+                    )
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalPlatformContext.current)
+                        .data(imageLink)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = title,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp, bottom = 8.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "❦ ❦ ❦",
-                        fontSize = 16.sp,
-                        color = Color(0xFFD4AF37),
-                        letterSpacing = 8.sp
-                    )
-                }
+                        .align(Alignment.Center)
+                        .defaultMinSize(minHeight = 250.dp)
+                        .wrapContentHeight()
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                        .zIndex(0f),
+                    contentScale = ContentScale.Fit,
+                )
             }
-
-            Text(
-                text = headingText,
-                fontSize = fontSize,
-                fontWeight = fontWeight,
-                fontFamily = FontFamily.Serif,
-                color = Color(0xFF6B4E3D),
+        } else {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        top = if (headingLevel == 2) 8.dp else 20.dp,
-                        bottom = 10.dp
-                    ),
-                textAlign = TextAlign.Start
-            )
-        } else if (trimmedLine.isNotBlank()) {
-            Text(
-                text = trimmedLine,
-                fontSize = 16.sp,
-                fontFamily = FontFamily.Serif,
-                color = Color(0xFF2C1810),
-                lineHeight = 28.sp,
-                textAlign = TextAlign.Justify,
-                modifier = Modifier
-                    .fillMaxWidth(0.98f)
-                    .padding(bottom = 12.dp)
+                    .height(320.dp)
+                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFFF4E4BC),
+                                Color(0xFFE6D3A3),
+                                Color(0xFFD4AF37).copy(alpha = 0.5f)
+                            ),
+                            radius = 600f
+                        )
+                    )
+                    .zIndex(0f)
             )
         }
+
+        // Vertical Black Gradient over the whole image and title box container
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.6f),
+                            Color.Black.copy(alpha = 0.2f),
+                            Color.Transparent,
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.5f),
+                            Color.Black.copy(alpha = 0.7f)
+                        ),
+                        startY = 0f,
+                        endY = Float.POSITIVE_INFINITY
+                    )
+                )
+                .zIndex(1f)
+        )
+
+        // Decorative icons
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+                .zIndex(10f),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "❦", fontSize = 28.sp, color = Color(0xFFD4AF37))
+            Text(text = "✦", fontSize = 24.sp, color = Color(0xFFD4AF37))
+            Text(text = "❦", fontSize = 28.sp, color = Color(0xFFD4AF37))
+        }
+
+        // Title
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(24.dp)
+                .zIndex(10f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                fontSize = 26.sp,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                lineHeight = 30.sp,
+                modifier = Modifier.sharedElement(
+                    rememberSharedContentState(key = "eventTitle${identifierTitle}"),
+                    animatedVisibilityScope
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Box(
+                modifier = Modifier
+                    .width(120.dp)
+                    .height(4.dp)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color(0xFFD4AF37),
+                                Color(0xFFFFD700),
+                                Color(0xFFD4AF37),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+        }
+    }
+}
+
+fun LazyListScope.EventDetail(
+    detailItems: List<DetailItem>
+) {
+    items(detailItems.size) { index ->
+        when (val item = detailItems[index]) {
+            is DetailItem.Heading -> {
+                if (item.level == 2) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 20.dp, bottom = 8.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "❦ ❦ ❦",
+                            fontSize = 16.sp,
+                            color = Color(0xFFD4AF37),
+                            letterSpacing = 8.sp
+                        )
+                    }
+                }
+
+                val fontSize = when (item.level) {
+                    2 -> 24.sp
+                    3 -> 22.sp
+                    else -> 18.sp
+                }
+                val fontWeight = when (item.level) {
+                    2 -> FontWeight.Bold
+                    3 -> FontWeight.Medium
+                    else -> FontWeight.Normal
+                }
+
+                Text(
+                    text = item.text,
+                    fontSize = fontSize,
+                    fontWeight = fontWeight,
+                    fontFamily = FontFamily.Serif,
+                    color = Color(0xFF6B4E3D),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            top = if (item.level == 2) 8.dp else 18.dp,
+                            bottom = 10.dp
+                        )
+                )
+            }
+
+            is DetailItem.Paragraph -> {
+                Text(
+                    text = item.text,
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily.Serif,
+                    color = Color(0xFF2C1810),
+                    lineHeight = 28.sp,
+                    textAlign = TextAlign.Justify,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                )
+            }
+        }
+    }
+
+    // Decorative footer
+    item {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "✦ ❦ ✦",
+                fontSize = 20.sp,
+                color = Color(0xFFD4AF37).copy(alpha = 0.7f),
+                letterSpacing = 12.sp
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 
 }

@@ -78,7 +78,7 @@ fun SharedTransitionScope.HomeScreen(
             )
 
             if(state.value.isLoading) {
-                LoadingContent(paddingValues)
+                LoadingContent()
             }else {
                 LazyColumn(
                     modifier = Modifier

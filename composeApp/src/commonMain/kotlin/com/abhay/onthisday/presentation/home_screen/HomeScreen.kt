@@ -129,7 +129,7 @@ fun SharedTransitionScope.EventCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .shadow(8.dp, RoundedCornerShape(16.dp)),
+            .shadow(8.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDF7)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -149,24 +149,28 @@ fun SharedTransitionScope.EventCard(
                     .height(200.dp)
             ) {
                 if (event.thumbnail.isNotBlank() || event.originalImage.isNotBlank()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalPlatformContext.current)
-                            .data(event.originalImage)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = event.title,
+                    Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                             .sharedElement(
                                 sharedContentState = rememberSharedContentState(
                                     key = "eventImage${event.identifierTitle}",
                                 ),
                                 animatedVisibilityScope = animatedVisibilityScope
                             ),
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.TopCenter
-                    )
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalPlatformContext.current)
+                                .data(event.originalImage)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = event.title,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                            contentScale = ContentScale.Crop,
+                            alignment = Alignment.TopCenter
+                        )
+                    }
                 } else {
                     Box(
                         modifier = Modifier

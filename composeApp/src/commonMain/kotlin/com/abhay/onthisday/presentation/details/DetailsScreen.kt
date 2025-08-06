@@ -211,26 +211,29 @@ fun SharedTransitionScope.DetailContent(
             ) {
                 // Image and gradient if image not available
                 if (imageLink.isNotEmpty()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalPlatformContext.current)
-                            .data(imageLink)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = title,
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Center)
-                            .defaultMinSize(minHeight = 250.dp)
-                            .wrapContentHeight()
-                            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                            .zIndex(0f)
                             .sharedElement(
                                 rememberSharedContentState(key = "eventImage${identifierTitle}"),
                                 animatedVisibilityScope = animatedVisibilityScope
                             )
-                        ,
-                        contentScale = ContentScale.Fit,
-                    )
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalPlatformContext.current)
+                                .data(imageLink)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = title,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Center)
+                                .defaultMinSize(minHeight = 250.dp)
+                                .wrapContentHeight()
+                                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                                .zIndex(0f),
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
                 } else {
                     Box(
                         modifier = Modifier
@@ -282,7 +285,7 @@ fun SharedTransitionScope.DetailContent(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = "❦", fontSize = 28.sp, color = Color(0xFFD4AF37))
-                    Text(text = "✦", fontSize = 24.sp, color = Color(0xFFD4AF37))
+
                     Text(text = "❦", fontSize = 28.sp, color = Color(0xFFD4AF37))
                 }
 

@@ -1,5 +1,8 @@
 package com.abhay.onthisday.presentation.details
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -32,13 +35,15 @@ import coil3.request.crossfade
 import com.abhay.onthisday.presentation.components.LoadingContent
 import com.abhay.onthisday.presentation.ui.Cream
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun DetailsScreen(
+fun SharedTransitionScope.DetailsScreen(
+    animatedVisibilityScope: AnimatedVisibilityScope,
     identifierTitle: String,
     viewModel: DetailsViewModel,
     onBackPressed: () -> Unit = {},
-    imageLink: String
+    imageLink: String,
+    title: String
 ) {
     LaunchedEffect(identifierTitle) {
         viewModel.getDetailOf(identifierTitle)
@@ -108,21 +113,21 @@ fun DetailsScreen(
         containerColor = Color(0xFFF7F3E9)
     ) { paddingValues ->
         when {
-            state.value.isLoading -> {
-                LoadingContent(paddingValues)
-            }
-
             state.value.error != null -> {
                 ErrorContent(paddingValues, state.value.error!!.asString())
             }
 
             else -> {
                 DetailContent(
-                    title = state.value.title,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    title = title,
                     detail = state.value.detail,
                     imageLink = imageLink,
                     modifier = Modifier
-                        .padding(paddingValues)
+                        .padding(paddingValues),
+                    isLoading = state.value.isLoading,
+                    paddingValues = paddingValues,
+                    identifierTitle = identifierTitle
                 )
             }
         }
@@ -176,15 +181,18 @@ private fun ErrorContent(paddingValues: PaddingValues, errorMessage: String) {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun DetailContent(
+fun SharedTransitionScope.DetailContent(
+    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
     title: String,
     imageLink: String,
-    detail: String
+    detail: String,
+    isLoading: Boolean,
+    paddingValues: PaddingValues,
+    identifierTitle: String
 ) {
-    val parsedLines = detail.lines()
-
     Card(
         modifier = modifier
             .fillMaxSize()
@@ -215,7 +223,12 @@ fun DetailContent(
                             .defaultMinSize(minHeight = 250.dp)
                             .wrapContentHeight()
                             .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                            .zIndex(0f),
+                            .zIndex(0f)
+                            .sharedElement(
+                                rememberSharedContentState(key = "eventImage${identifierTitle}"),
+                                animatedVisibilityScope = animatedVisibilityScope
+                            )
+                        ,
                         contentScale = ContentScale.Fit,
                     )
                 } else {
@@ -288,7 +301,11 @@ fun DetailContent(
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         textAlign = TextAlign.Center,
-                        lineHeight = 30.sp
+                        lineHeight = 30.sp,
+                        modifier = Modifier.sharedElement(
+                            rememberSharedContentState(key = "eventTitle${identifierTitle}"),
+                            animatedVisibilityScope
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -319,71 +336,15 @@ fun DetailContent(
                     .background(Color(0xFFFFFDF7))
                     .padding(18.dp)
             ) {
-                parsedLines.forEach { line ->
-                    val trimmedLine = line.trim()
-                    val isHeading = trimmedLine.startsWith("=")
 
-                    if (isHeading) {
-                        val headingLevel = trimmedLine.takeWhile { it == '=' }.length
-                        val headingText = trimmedLine.trim('=').trim()
+                EventDetail(
+                    detail = detail,
+                )
 
-                        val fontSize = when (headingLevel) {
-                            2 -> 22.sp
-                            3 -> 20.sp
-                            else -> 16.sp
-                        }
-
-                        val fontWeight = when (headingLevel) {
-                            2 -> FontWeight.Bold
-                            3 -> FontWeight.Medium
-                            else -> FontWeight.Normal
-                        }
-
-                        // Decorative element before major headings
-                        if (headingLevel == 2) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 24.dp, bottom = 8.dp),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = "❦ ❦ ❦",
-                                    fontSize = 16.sp,
-                                    color = Color(0xFFD4AF37),
-                                    letterSpacing = 8.sp
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = headingText,
-                            fontSize = fontSize,
-                            fontWeight = fontWeight,
-                            fontFamily = FontFamily.Serif,
-                            color = Color(0xFF6B4E3D),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    top = if (headingLevel == 2) 8.dp else 20.dp,
-                                    bottom = 10.dp
-                                ),
-                            textAlign = TextAlign.Start
-                        )
-                    } else if (trimmedLine.isNotBlank()) {
-                        Text(
-                            text = trimmedLine,
-                            fontSize = 16.sp,
-                            fontFamily = FontFamily.Serif,
-                            color = Color(0xFF2C1810),
-                            lineHeight = 28.sp,
-                            textAlign = TextAlign.Justify,
-                            modifier = Modifier
-                                .fillMaxWidth(0.98f)
-                                .padding(bottom = 12.dp)
-                        )
-                    }
+                if (isLoading) {
+                    LoadingContent(paddingValues = paddingValues)
                 }
+
 
                 // Add decorative footer
                 Spacer(modifier = Modifier.height(24.dp))
@@ -402,4 +363,77 @@ fun DetailContent(
             }
         }
     }
+}
+
+@Composable
+fun EventDetail(
+    detail: String,
+) {
+    val parsedLines = detail.lines()
+    parsedLines.forEach { line ->
+        val trimmedLine = line.trim()
+        val isHeading = trimmedLine.startsWith("=")
+
+        if (isHeading) {
+            val headingLevel = trimmedLine.takeWhile { it == '=' }.length
+            val headingText = trimmedLine.trim('=').trim()
+
+            val fontSize = when (headingLevel) {
+                2 -> 22.sp
+                3 -> 20.sp
+                else -> 16.sp
+            }
+
+            val fontWeight = when (headingLevel) {
+                2 -> FontWeight.Bold
+                3 -> FontWeight.Medium
+                else -> FontWeight.Normal
+            }
+
+            // Decorative element before major headings
+            if (headingLevel == 2) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "❦ ❦ ❦",
+                        fontSize = 16.sp,
+                        color = Color(0xFFD4AF37),
+                        letterSpacing = 8.sp
+                    )
+                }
+            }
+
+            Text(
+                text = headingText,
+                fontSize = fontSize,
+                fontWeight = fontWeight,
+                fontFamily = FontFamily.Serif,
+                color = Color(0xFF6B4E3D),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        top = if (headingLevel == 2) 8.dp else 20.dp,
+                        bottom = 10.dp
+                    ),
+                textAlign = TextAlign.Start
+            )
+        } else if (trimmedLine.isNotBlank()) {
+            Text(
+                text = trimmedLine,
+                fontSize = 16.sp,
+                fontFamily = FontFamily.Serif,
+                color = Color(0xFF2C1810),
+                lineHeight = 28.sp,
+                textAlign = TextAlign.Justify,
+                modifier = Modifier
+                    .fillMaxWidth(0.98f)
+                    .padding(bottom = 12.dp)
+            )
+        }
+    }
+
 }

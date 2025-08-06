@@ -1,5 +1,8 @@
 package com.abhay.onthisday.presentation.home_screen
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,11 +40,12 @@ import com.abhay.onthisday.presentation.components.LoadingContent
 import com.abhay.onthisday.presentation.ui.*
 import com.abhay.onthisday.presentation.util.formatIsoTimeToDisplay
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeScreen(
+fun SharedTransitionScope.HomeScreen(
+    animatedVisibilityScope: AnimatedVisibilityScope,
     viewModel: HomeViewModel,
-    onEventClicked: (String, String) -> Unit = {_,_ ->}
+    onEventClicked: (String, String, String) -> Unit = {_,_,_ ->}
 ) {
 
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -99,7 +103,10 @@ fun HomeScreen(
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
                 items(state.value.events, key = { it.title + it.timeStamp }) { event ->
-                    EventCard(event = event, onClick = { onEventClicked(event.identifierTitle, event.originalImage) })
+                    EventCard(
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        event = event, onClick = { onEventClicked(event.identifierTitle, event.originalImage, event.title) }
+                    )
                 }
 
                 item {
@@ -112,8 +119,12 @@ fun HomeScreen(
 
 
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun EventCard(event: Event, onClick: () -> Unit) {
+fun SharedTransitionScope.EventCard(
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    event: Event, onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -140,20 +151,27 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                 if (event.thumbnail.isNotBlank() || event.originalImage.isNotBlank()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalPlatformContext.current)
-                            .data(event.originalImage.ifBlank { event.thumbnail })
+                            .data(event.originalImage)
                             .crossfade(true)
                             .build(),
                         contentDescription = event.title,
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp)),
-                        contentScale = ContentScale.Crop
+                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                            .sharedElement(
+                                sharedContentState = rememberSharedContentState(
+                                    key = "eventImage${event.identifierTitle}",
+                                ),
+                                animatedVisibilityScope = animatedVisibilityScope
+                            ),
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.TopCenter
                     )
                 } else {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
+                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                             .background(
                                 Brush.radialGradient(
                                     colors = listOf(
@@ -166,7 +184,7 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                     )
                 }
 
-                // Vintage vignette overlay
+                // Vignette overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -201,14 +219,14 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                 )
             }
 
-            // Content section with historical styling
+            // Content section
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFFFFFDF7))
                     .padding(20.dp)
             ) {
-                // Decorative divider
+                // Divider
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -218,9 +236,9 @@ fun EventCard(event: Event, onClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Date with Roman numerals style
+                // Date
                 Text(
-                    text = "Anno Domini ${formatIsoTimeToDisplay(event.timeStamp)}",
+                    text = formatIsoTimeToDisplay(event.timeStamp),
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Medium,
@@ -231,7 +249,7 @@ fun EventCard(event: Event, onClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Title with manuscript styling
+                // Title
                 Text(
                     text = event.title,
                     fontSize = 20.sp,
@@ -242,12 +260,18 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
                     lineHeight = 24.sp,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .sharedElement(
+                            rememberSharedContentState(key = "eventTitle${event.identifierTitle}"),
+                            animatedVisibilityScope
+                        )
+
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Description with aged paper styling
+                // Description
                 Text(
                     text = event.extract.takeIf { it.isNotBlank() } ?: event.description,
                     fontSize = 14.sp,
@@ -256,12 +280,12 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 20.sp,
-                    textAlign = TextAlign.Justify
+                    textAlign = TextAlign.Justify,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Decorative divider
+                // Divider
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -271,7 +295,6 @@ fun EventCard(event: Event, onClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Read more with scroll-like design
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center

@@ -33,6 +33,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.abhay.onthisday.domain.model.Event
+import com.abhay.onthisday.presentation.components.LoadingContent
 import com.abhay.onthisday.presentation.ui.*
 import com.abhay.onthisday.presentation.util.formatIsoTimeToDisplay
 
@@ -40,12 +41,8 @@ import com.abhay.onthisday.presentation.util.formatIsoTimeToDisplay
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onEventClicked: (String) -> Unit = {}
+    onEventClicked: (String, String) -> Unit = {_,_ ->}
 ) {
-
-    LaunchedEffect(Unit) {
-        viewModel.getEventsForThisDay()
-    }
 
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -61,7 +58,7 @@ fun HomeScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "✦ CHRONICLES OF HISTORY ✦",
+                            text = "✦ ON THIS DAY ✦",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Serif,
@@ -90,20 +87,24 @@ fun HomeScreen(
         },
         containerColor = Color(0xFFF7F3E9)
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-            contentPadding = PaddingValues(vertical = 16.dp)
-        ) {
-            items(state.value.events, key = { it.title + it.timeStamp }) { event ->
-                EventCard(event = event, onClick = { onEventClicked(event.identifierTitle) })
-            }
+        if(state.value.isLoading) {
+            LoadingContent(paddingValues)
+        }else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                contentPadding = PaddingValues(vertical = 16.dp)
+            ) {
+                items(state.value.events, key = { it.title + it.timeStamp }) { event ->
+                    EventCard(event = event, onClick = { onEventClicked(event.identifierTitle, event.originalImage) })
+                }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
@@ -131,7 +132,6 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                     shape = RoundedCornerShape(16.dp)
                 )
         ) {
-            // Image section with ornate frame
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -150,7 +150,6 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    // Historical manuscript-style background
                     Box(
                         modifier = Modifier
                             .fillMaxSize()

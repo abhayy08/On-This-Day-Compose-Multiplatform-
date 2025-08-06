@@ -11,6 +11,6 @@ sealed interface Routes {
     data object HomeScreen: Routes
 
     @Serializable
-    data class DetailsScreen(val identifierTitle: String): Routes
+    data class DetailsScreen(val identifierTitle: String, val imageLink: String): Routes
 
 }

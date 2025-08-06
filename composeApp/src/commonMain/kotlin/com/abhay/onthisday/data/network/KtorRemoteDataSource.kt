@@ -1,6 +1,7 @@
 package com.abhay.onthisday.data.network
 
 import com.abhay.onthisday.data.dto.ApiResponseDto
+import com.abhay.onthisday.data.dto.DetailsResponseDto
 import com.abhay.onthisday.domain.util.DataError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -13,8 +14,6 @@ import kotlin.coroutines.coroutineContext
 import com.abhay.onthisday.domain.util.Result
 import io.ktor.client.call.NoTransformationFoundException
 
-private val BASE_URL = "https://en.wikipedia.org/api/rest_v1/feed/onthisday/events"
-
 class KtorRemoteDataSource(
     private val httpClient: HttpClient
 ): RemoteDataSource {
@@ -25,7 +24,15 @@ class KtorRemoteDataSource(
     ):Result<ApiResponseDto, DataError> {
         return safeCall {
             httpClient.get(
-                urlString = "$BASE_URL/$month/$day"
+                urlString = "https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/$month/$day"
+            )
+        }
+    }
+
+    override suspend fun getDetailsOnTopic(topic: String): Result<DetailsResponseDto, DataError> {
+        return safeCall {
+            httpClient.get(
+                urlString = "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&titles=$topic&explaintext=1&format=json"
             )
         }
     }

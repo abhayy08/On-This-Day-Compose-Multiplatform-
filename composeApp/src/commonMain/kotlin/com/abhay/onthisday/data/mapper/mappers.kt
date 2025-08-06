@@ -1,6 +1,8 @@
 package com.abhay.onthisday.data.mapper
 
 import com.abhay.onthisday.data.dto.Page
+import com.abhay.onthisday.data.dto.PageSummary
+import com.abhay.onthisday.domain.model.DetailedEvent
 import com.abhay.onthisday.domain.model.Event
 
 fun Page.toDomainEvent(): Event {
@@ -13,5 +15,12 @@ fun Page.toDomainEvent(): Event {
         thumbnail = thumbnail?.source ?: "",
         originalImage = originalimage?.source ?: "",
         contentUrl = ""
+    )
+}
+
+fun PageSummary.toDetailedEvent(): DetailedEvent {
+    return DetailedEvent(
+        title = title,
+        detail = extract ?: ""
     )
 }

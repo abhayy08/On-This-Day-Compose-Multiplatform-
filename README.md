@@ -118,8 +118,9 @@ cd onthisday
 
 ### 3. Run on iOS
 
-1. Set up `iosApp` run configuration and then change the run configuration to  `iosApp` in Android Studio
-2. Press the **Run** button
+1. Set up `iosApp` run configuration in Android Studio
+2. Select `iosApp` target in Android Studio
+3. Press the **Run** button
 
 ## Tech Stack
 

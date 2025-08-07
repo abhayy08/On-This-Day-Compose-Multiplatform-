@@ -118,9 +118,8 @@ cd onthisday
 
 ### 3. Run on iOS
 
-1. Open `iosApp/iosApp.xcodeproj` in Xcode
-2. Select a simulator or connected device
-3. Press the **Run** button
+1. Set up `iosApp` run configuration and then change the run configuration to  `iosApp` in Android Studio
+2. Press the **Run** button
 
 ## Tech Stack
 

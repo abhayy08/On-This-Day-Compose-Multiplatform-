@@ -48,7 +48,8 @@ fun SharedTransitionScope.DetailsScreen(
     viewModel: DetailsViewModel,
     onBackPressed: () -> Unit = {},
     imageLink: String,
-    title: String
+    title: String,
+    isDesktop: Boolean
 ) {
     LaunchedEffect(identifierTitle) {
         viewModel.getDetailOf(identifierTitle)
@@ -63,7 +64,7 @@ fun SharedTransitionScope.DetailsScreen(
             DetailsTopAppbar(
                 title = state.value.title,
                 onBackPressed = onBackPressed,
-                scrollBehavior
+                scrollBehavior = scrollBehavior
             )
         },
         containerColor = Color(0xFFF7F3E9)
@@ -93,7 +94,8 @@ fun SharedTransitionScope.DetailsScreen(
                         modifier = Modifier
                             .padding(paddingValues),
                         isLoading = state.value.isLoading,
-                        identifierTitle = identifierTitle
+                        identifierTitle = identifierTitle,
+                        isDesktop = isDesktop
                     )
                 }
             }
@@ -174,13 +176,25 @@ fun SharedTransitionScope.DetailContent(
     imageLink: String,
     detail: String,
     isLoading: Boolean,
-    identifierTitle: String
+    identifierTitle: String,
+    isDesktop: Boolean
 ) {
     val detailItems = remember(detail) { parseDetailText(detail) }
+
+    val responsiveModifier = modifier
+        .fillMaxSize()
+        .padding(8.dp)
+        .then(
+            if (isDesktop) {
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentWidth(Alignment.CenterHorizontally)
+                    .widthIn(max = 700.dp)
+            } else Modifier.fillMaxWidth()
+        )
+
     Card(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(8.dp),
+        modifier = responsiveModifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -192,7 +206,6 @@ fun SharedTransitionScope.DetailContent(
                 .fillMaxWidth()
                 .background(Cream),
         ) {
-
             item {
                 ImageAndTitle(
                     imageLink = imageLink,
@@ -202,17 +215,13 @@ fun SharedTransitionScope.DetailContent(
                 )
             }
 
-
-            // CONTENT SECTION
             if (isLoading) {
                 item {
                     Spacer(modifier = Modifier.height(30.dp))
                     LoadingContent()
                 }
             } else {
-                EventDetail(
-                    detailItems = detailItems,
-                )
+                EventDetail(detailItems = detailItems)
             }
 
             item {
@@ -233,6 +242,7 @@ fun SharedTransitionScope.DetailContent(
         }
     }
 }
+
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)

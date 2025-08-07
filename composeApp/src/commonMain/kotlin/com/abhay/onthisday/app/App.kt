@@ -22,9 +22,11 @@ import org.koin.compose.viewmodel.koinViewModel
 
 
 @Composable
-fun App() {
+fun App(
+    isDesktop: Boolean = false,
+) {
     MaterialTheme {
-        OnThisDayNavGraph()
+        OnThisDayNavGraph(isDesktop)
     }
 }
 
@@ -32,7 +34,7 @@ fun App() {
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 @Preview
-fun OnThisDayNavGraph() {
+fun OnThisDayNavGraph(isDesktop: Boolean) {
 
     val navController = rememberNavController()
 
@@ -82,7 +84,8 @@ fun OnThisDayNavGraph() {
                                     title = title
                                 )
                             )
-                        }
+                        },
+                        isDesktop = isDesktop
                     )
                 }
 
@@ -98,7 +101,8 @@ fun OnThisDayNavGraph() {
                             navController.popBackStack()
                         },
                         imageLink = args.imageLink.ifBlank { "" },
-                        title = args.title
+                        title = args.title,
+                        isDesktop = isDesktop
                     )
                 }
             }

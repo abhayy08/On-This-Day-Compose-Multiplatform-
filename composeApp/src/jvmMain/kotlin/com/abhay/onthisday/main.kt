@@ -14,7 +14,13 @@ fun main() {
             onCloseRequest = ::exitApplication,
             title = "On This Day",
         ) {
-            App()
+            App(isDesktop = isDesktopPlatform())
         }
     }
+}
+
+fun isDesktopPlatform(): Boolean {
+    return System.getProperty("os.name")?.let {
+        it.contains("Windows") || it.contains("Linux") || it.contains("Mac")
+    } ?: false
 }

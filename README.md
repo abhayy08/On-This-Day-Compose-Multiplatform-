@@ -1,15 +1,14 @@
 # 📅 OnThisDay - Kotlin Multiplatform Wikipedia Extract Viewer
 
-A Kotlin Multiplatform app that fetches and displays historical events from Wikipedia using the [Wikipedia API](https://en.wikipedia.org/w/api.php). Built using Jetpack Compose for Android and SwiftUI for iOS.
+A Kotlin Multiplatform app that fetches and displays historical events from Wikipedia using the [Wikipedia API](https://en.wikipedia.org/w/api.php). Built using Jetpack Compose for Android, iOS and Desktop.
 
 ## Features
 
 -  Fetches Wikipedia extracts using Ktor client
 -  Clean architecture with domain, data, and presentation layers
--  Jetpack Compose UI for Android
--  SwiftUI UI for iOS
+-  Jetpack Compose for UI
 -  Koin for Dependency Injection
--  Multiplatform support (`androidMain`, `iosMain`, `commonMain`)
+-  Multiplatform support (`androidMain`, `iosMain`, `jvmMain`)
 -  Error and loading UI states
 -  Well-organized folder structure
 
@@ -22,7 +21,7 @@ composeApp/
 ├── src/
 │   ├── androidMain/                    # Android-specific code
 │   ├── iosMain/                        # iOS-specific code
-│   ├── jvmMain/                        # JVM target (optional)
+│   ├── jvmMain/                        # JVM target
 │   └── commonMain/                     # Shared business logic
 │       ├── composeResources/
 │       └── kotlin/
@@ -77,7 +76,7 @@ composeApp/
 
 ### iOS Application
 
--  **`/iosApp/iosApp`** - Contains iOS application entry point and SwiftUI code
+-  **`/iosApp/iosApp`** - Contains iOS application entry point
 -  Even when sharing UI with Compose Multiplatform, this entry point is required for iOS
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)
@@ -121,6 +120,11 @@ cd onthisday
 1. Set up `iosApp` run configuration in Android Studio
 2. Select `iosApp` target in Android Studio
 3. Press the **Run** button
+
+### 4. Run on Desktop
+
+1. Run `./gradlew run` on the terminal for launching the app on Desktop.
+
 
 ## Tech Stack
 
